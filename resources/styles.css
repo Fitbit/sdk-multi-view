@@ -1,0 +1,22 @@
+.title {
+  x: 50%;
+  y: 50%+15;
+  fill: fb-yellow;
+  font-family: System-Regular;
+  font-size: 40;
+  font-weight: bold;
+  text-anchor: middle;
+}
+
+.btn {
+  y: 100%-60;
+  height: 60;
+  fill: fb-red;
+  font-family: System-Regular;
+  font-size: 40;
+}
+
+#text {
+  y: 12;
+  fill: white;
+}

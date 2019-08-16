@@ -1,0 +1,6 @@
+<svg viewport-fill="yellow">
+  <text x="50%" y="50%+15"
+        font-family="System-Regular" fill="black"
+        font-size="30" font-weight="bold"
+        text-anchor="middle">Loading</text>
+</svg>

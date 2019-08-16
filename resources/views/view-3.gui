@@ -1,0 +1,6 @@
+<svg viewport-fill="#666666">
+  <text class="title">This is view-3.</text>
+  <use id="v3-button" href="#push-button" class="btn">
+    <set href="#text" attributeName="text-buffer" to="GO view-1" />
+  </use>
+</svg>
