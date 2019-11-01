@@ -1,37 +1,32 @@
 import document from "document";
+import clock from "clock";
 
-let views;
+export function initialize( views, { granularity } ){
+  console.log("view3 initialize()");
 
-export function init(_views) {
-  views = _views;
-  console.log("view-3 init()");
-  onMount();
-}
+  // Subscribe for clock updates...
+  clock.granularity = granularity; // seconds, minutes, hours
 
-/**
- * When this view is mounted, setup elements and events.
- */
-function onMount() {
+  clock.ontick = function(evt) {
+    console.log(evt.date.toString());
+  };
+
   let btn = document.getElementById("v3-button");
-  btn.addEventListener("click", clickHandler);
-  document.addEventListener("keypress", keyHandler);
-}
+  
+  /**
+   * Replace current view with view-2. Back button would still return us to view-1.
+   */  
+  btn.addEventListener("click", evt => {
+    console.log("view-3 Button Clicked!");
+    /* Navigate to another screen */
+    views.replace("view-2");
+  });
 
-/**
- * Sample button click with navigation.
- */
-function clickHandler(_evt) {
-  console.log("view-3 Button Clicked!");
-  /* Navigate to another screen */
-  views.navigate("view-1");
-}
-
-/**
- * Sample keypress handler to navigate backwards.
- */
-function keyHandler(evt) {
-  if (evt.key === "back") {
-    evt.preventDefault();
-    views.navigate("view-2");
+  // View init functions can return clean-up functions executed before the view is unloaded.
+  // No need to unsubscribe from DOM events, it's done automatically.
+  return () => {
+    // Unsubscribe from clock.
+    clock.granularity = "off";
+    clock.ontick = void 0;
   }
 }
