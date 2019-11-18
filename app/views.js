@@ -4,47 +4,73 @@
 import document from "document";
 
 /**
- * Initialize the views module with views from a specific folder.
- * @param {Object[]} _views An array of views containing the view filename excluding
- * its file extension, and an associated JavaScript `import()`.
  * @param {string} _prefix The folder name where the view files reside.
+ * Initialize the views module with views from a specific folder.
+ * @param {Object} _views An map of view names to an associated JavaScript `import()`.
  */
-export function init(_views, _prefix) {
-  let views = _views;
-  let viewsPrefix = _prefix;
-  const viewsSuffix = ".gui";
-  let viewSelected;
 
-  /**
-   * Select a specific view by its index. The view's associated JavaScript is
-   * loaded and executed, and the current view is replaced by the selected one.
-   * @param {number} _index The array position of the view to be selected.
-   */
-  const select = _index => {
-    const [viewGUI, viewJSLoader] = views[_index];
-    viewSelected = viewGUI;
-    viewJSLoader()
-      .then(({ init }) => {
-        document.replaceSync(`${viewsPrefix}${viewGUI}${viewsSuffix}`);
-        init({ navigate });
-      })
-      .catch(() => {
-        console.error(`Failed to load view JS: ${viewGUI}`);
-      });
-  };
+let _views;
+let _unmount;
+let _history = [];
+let _options = [];
+let _currentOptions;
+
+const viewport = {
+  initialize( views ) {
+    _views = views;
+  },
+
+  // Currently selected view name.
+  current : null,
+
+  // Global context shared across all views.
+  context : {},
 
   /**
    * Navigate to a specific view using its view name.
-   * @param {string} _viewName The name of a .gui file, excluding its path or
-   * file extension.
+   * @param {string} viewName The name of a .gui file, excluding its path or file extension.
+   * @param {object} options Object with options to be passed to view's initialize() function.
    */
-  const navigate = _viewName => {
-    const index = views.indexOf(views.filter(el => el[0] == _viewName)[0]);
-    select(index);
-  };
+  replace( viewName, options ){
+    if( _unmount ){
+      _unmount();
+    }
+    
+    _views[ viewName ]()
+      .then(({ initialize }) => {
+        document.replaceSync(`./resources/views/${viewName}.gui`);
+        
+        if( _history.length ){
+          document.addEventListener( "keypress", evt => {
+            if( evt.key === "back"){
+              evt && evt.preventDefault();
+              viewport.back( evt );
+            }
+          });  
+        }
 
-  return {
-    navigate,
-    viewSelected: () => viewSelected
-  };
+        viewport.current = viewName;
+        _currentOptions = options;
+        _unmount = initialize( viewport, options );
+      })
+      .catch( e => {
+        console.error( e );
+        console.error(`Failed to load view JS: ${viewName}`);
+      });
+  },
+
+  /** Open the view as subview, so back button can be used to navigate back */
+  open( viewName, options ){
+    _history.push( this.current );
+    _options.push( _currentOptions );
+
+    viewport.replace( viewName, options );
+  },
+
+  /** If view was opened with views.open(), close it and navigate to the previous view */
+  back(){
+    viewport.replace( _history.pop(), _options.pop() );
+  }
 }
+
+export default viewport;
